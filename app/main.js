@@ -38,14 +38,15 @@ const get = ([type, key]) => {
   return resp;
 };
 const rpush = (args) => {
-  const [_, list, __, ...values] = args;
-  let finalValues = values.filter((el) => el !== "");
+  const [_, list, ...rest] = args;
+  let finalValues = rest.filter((el) => !el.startsWith("$") && el !== "");
   if (cache.has(list)) {
     const v = cache.get(list);
     v.push(...finalValues);
     return integer(v.length);
   } else {
     cache.set(list, [...finalValues]);
+    console.log(list, ...finalValues);
     return integer(finalValues.length);
   }
 };
