@@ -9,6 +9,7 @@ const GET = "get";
 const RPUSH = "rpush";
 const LRANGE = "lrange";
 const LPUSH = "lpush";
+const LLEN = "llen";
 const string = (s) => `+${s}`;
 const integer = (n) => [`:${n}`];
 const array = (list) => {
@@ -84,6 +85,15 @@ const lpush = (args) => {
     return integer(finalValues.length);
   }
 };
+const llen = (args) => {
+  const [_, list] = args;
+  if (cache.has(list)) {
+    const v = cache.get(list);
+    return integer(v.length);
+  } else {
+    return integer(0);
+  }
+};
 const parseBuffer = (buff) => {
   const resp = buff.toString();
   const [_, __, cmd, ...args] = resp.split(TERMINATOR);
@@ -102,6 +112,8 @@ const parseBuffer = (buff) => {
       return lrange(args);
     case LPUSH:
       return lpush(args);
+    case LLEN:
+      return llen(args);
   }
 };
 /**
