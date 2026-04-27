@@ -10,6 +10,7 @@ const RPUSH = "rpush";
 const LRANGE = "lrange";
 const LPUSH = "lpush";
 const LLEN = "llen";
+const LPOP = "lpop";
 const string = (s) => `+${s}`;
 const integer = (n) => [`:${n}`];
 const array = (list) => {
@@ -94,6 +95,16 @@ const llen = (args) => {
     return integer(0);
   }
 };
+const lpop = (args) => {
+  const [_, list] = args;
+  if (cache.has(list)) {
+    const v = cache.get(list);
+    const result = v.shift();
+    return string(result);
+  } else {
+    return [NULL];
+  }
+};
 const parseBuffer = (buff) => {
   const resp = buff.toString();
   const [_, __, cmd, ...args] = resp.split(TERMINATOR);
@@ -114,6 +125,8 @@ const parseBuffer = (buff) => {
       return lpush(args);
     case LLEN:
       return llen(args);
+    case LPOP:
+      return lpop(args);
   }
 };
 /**
