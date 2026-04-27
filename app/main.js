@@ -77,7 +77,7 @@ const lpush = (args) => {
   let finalValues = rest.filter((el) => !el.startsWith("$") && el !== "");
   if (cache.has(list)) {
     const v = cache.get(list);
-    v.unshift(...finalValues);
+    v.unshift(...finalValues.reverse());
     return integer(v.length);
   } else {
     cache.set(list, [...finalValues]);
