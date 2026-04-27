@@ -6,7 +6,9 @@ const ECHO = "echo";
 const PING = "ping";
 const SET = "set";
 const GET = "get";
+const RPUSH = "rpush";
 const string = (s) => `+${s}`;
+const integer = (n) => [`:${n}`];
 
 const ping = () => {
   return [string("PONG")];
@@ -35,6 +37,18 @@ const get = ([type, key]) => {
   }
   return resp;
 };
+const rpush = (args) => {
+  const [_, list, __, ...values] = args;
+  let finalValues = values.filter((el) => el !== "");
+  if (cache.has(list)) {
+    const v = cache.get(list);
+    v.push(...finalValues);
+    return integer(v.length);
+  } else {
+    cache.set(list, [...finalValues]);
+    return integer(finalValues.length);
+  }
+};
 const parseBuffer = (buff) => {
   const resp = buff.toString();
   const [_, __, cmd, ...args] = resp.split(TERMINATOR);
@@ -47,6 +61,8 @@ const parseBuffer = (buff) => {
       return set(args);
     case GET:
       return get(args);
+    case RPUSH:
+      return rpush(args);
   }
 };
 /**
