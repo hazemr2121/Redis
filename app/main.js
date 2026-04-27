@@ -12,6 +12,7 @@ const LPUSH = "lpush";
 const LLEN = "llen";
 const LPOP = "lpop";
 const string = (s) => `+${s}`;
+const bulkString = (s) => [`$${s.length}`, s];
 const integer = (n) => [`:${n}`];
 const array = (list) => {
   const elements = list.map((el) => [`$${el.length}`, el]).flat();
@@ -100,7 +101,7 @@ const lpop = (args) => {
   if (cache.has(list)) {
     const v = cache.get(list);
     const result = v.shift();
-    return string(result);
+    return bulkString(result);
   } else {
     return [NULL];
   }
