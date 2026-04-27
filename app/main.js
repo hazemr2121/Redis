@@ -8,6 +8,7 @@ const SET = "set";
 const GET = "get";
 const RPUSH = "rpush";
 const LRANGE = "lrange";
+const LPUSH = "lpush";
 const string = (s) => `+${s}`;
 const integer = (n) => [`:${n}`];
 const array = (list) => {
@@ -71,6 +72,18 @@ const lrange = (args) => {
     return array([]);
   }
 };
+const lpush = (args) => {
+  const [_, list, ...rest] = args;
+  let finalValues = rest.filter((el) => !el.startsWith("$") && el !== "");
+  if (cache.has(list)) {
+    const v = cache.get(list);
+    v.unshift(...finalValues);
+    return integer(v.length);
+  } else {
+    cache.set(list, [...finalValues]);
+    return integer(finalValues.length);
+  }
+};
 const parseBuffer = (buff) => {
   const resp = buff.toString();
   const [_, __, cmd, ...args] = resp.split(TERMINATOR);
@@ -87,6 +100,8 @@ const parseBuffer = (buff) => {
       return rpush(args);
     case LRANGE:
       return lrange(args);
+    case LPUSH:
+      return lpush(args);
   }
 };
 /**
