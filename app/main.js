@@ -56,13 +56,16 @@ const rpush = (args) => {
 
 const lrange = (args) => {
   args = args.filter((el) => !el.startsWith("$") && el !== "");
-  if (args[1] > args[2]) {
+  const start = parseInt(args[1]);
+  const end = parseInt(args[2]);
+
+  if (start > end && end >= 0) {
     return array([]);
   }
   const list = args[0];
   if (cache.has(list)) {
     const v = cache.get(list);
-    const result = v.slice(args[1], parseInt(args[2]) + 1);
+    const result = end === -1 ? v.slice(start) : v.slice(start, end + 1);
     return array(result);
   } else {
     return array([]);
