@@ -7,9 +7,13 @@ const PING = "ping";
 const SET = "set";
 const GET = "get";
 const RPUSH = "rpush";
+const LRANGE = "lrange";
 const string = (s) => `+${s}`;
 const integer = (n) => [`:${n}`];
-
+const array = (list) => {
+  const elements = list.map((el) => [`$${el.length}`, el]).flat();
+  return [`*${list.length}`, ...elements];
+};
 const ping = () => {
   return [string("PONG")];
 };
@@ -46,8 +50,22 @@ const rpush = (args) => {
     return integer(v.length);
   } else {
     cache.set(list, [...finalValues]);
-    console.log(list, ...finalValues);
     return integer(finalValues.length);
+  }
+};
+
+const lrange = (args) => {
+  args = args.filter((el) => !el.startsWith("$") && el !== "");
+  if (args[1] > args[2]) {
+    return array([]);
+  }
+  const list = args[0];
+  if (cache.has(list)) {
+    const v = cache.get(list);
+    const result = v.slice(args[1], parseInt(args[2]) + 1);
+    return array(result);
+  } else {
+    return array([]);
   }
 };
 const parseBuffer = (buff) => {
@@ -64,6 +82,8 @@ const parseBuffer = (buff) => {
       return get(args);
     case RPUSH:
       return rpush(args);
+    case LRANGE:
+      return lrange(args);
   }
 };
 /**
