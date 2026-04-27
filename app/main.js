@@ -7,8 +7,23 @@ console.log("Logs from your program will appear here!");
 const server = net.createServer((connection) => {
   // Handle connection
   connection.on("data", (data) => {
-    connection.write(`+PONG\r\n`);
+    const raw = RESPParser(data);
+    if (raw[0].toLowerCase() == "ping") {
+      connection.write(`+PONG\r\n`);
+    }
+    if (raw[0].toLowerCase() == "echo") {
+      connection.write(`$${raw[1].length}\r\n${raw[1]}\r\n`);
+    }
   });
 });
 
 server.listen(6379, "127.0.0.1");
+
+function RESPParser(str) {
+  let raw = str.toString();
+  raw = raw.split("\r\n");
+  raw = raw.filter(
+    (el) => !el.startsWith("$") && !el.startsWith("*") && !el == "",
+  );
+  return raw;
+}
