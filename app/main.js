@@ -12,13 +12,27 @@ const server = net.createServer((connection) => {
       connection.write(`+PONG\r\n`);
     } else if (raw[0].toLowerCase() == "echo") {
       connection.write(`$${raw[1].length}\r\n${raw[1]}\r\n`);
+    } else if (
+      raw[0].toLowerCase() == "set" &&
+      (raw[3]?.toLowerCase() == "ex" || raw[3]?.toLowerCase() == "px")
+    ) {
+      db.set(raw[1], raw[2]);
+      connection.write(`+OK\r\n`);
+      setTimeout(
+        () => {
+          db.delete(raw[1]);
+        },
+        raw[3].toLowerCase() == "px" ? raw[4] : raw[4] * 1000,
+      );
     } else if (raw[0].toLowerCase() == "set") {
       db.set(raw[1], raw[2]);
       connection.write(`+OK\r\n`);
     } else if (raw[0].toLowerCase() == "get") {
       let result = db.get(raw[1]);
       if (result) connection.write(`$${result.length}\r\n${result}\r\n`);
-      connection.write(`$-1\r\n`);
+      else {
+        connection.write(`$-1\r\n`);
+      }
     }
   });
 });
@@ -29,7 +43,7 @@ function RESPParser(str) {
   let raw = str.toString();
   raw = raw.split("\r\n");
   raw = raw.filter(
-    (el) => !el.startsWith("$") && !el.startsWith("*") && !el == "",
+    (el) => !el.startsWith("$") && !el.startsWith("*") && el !== "",
   );
   return raw;
 }
