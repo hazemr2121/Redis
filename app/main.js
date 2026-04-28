@@ -97,11 +97,16 @@ const llen = (args) => {
   }
 };
 const lpop = (args) => {
-  const [_, list] = args;
+  const [_, list, __, count] = args;
   if (cache.has(list)) {
     const v = cache.get(list);
-    const result = v.shift();
-    return bulkString(result);
+    if (count) {
+      const result = v.splice(0, count);
+      return array(result);
+    } else {
+      const result = v.shift();
+      return bulkString(result);
+    }
   } else {
     return [NULL];
   }
