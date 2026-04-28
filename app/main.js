@@ -126,13 +126,13 @@ const blpop = (args, conn) => {
     return array([list, result]);
   } else {
     const entry = { conn, timer: null };
-    if (parseInt(timeout) > 0) {
+    if (parseFloat(timeout) > 0) {
       entry.timer = setTimeout(
         () => {
           blockedClients.delete(list);
           conn.write(NULLARRAY);
         },
-        parseInt(timeout) * 1000,
+        parseFloat(timeout) * 1000,
       );
     }
     if (blockedClients.has(list)) {
